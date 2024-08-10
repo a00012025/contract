@@ -20,31 +20,33 @@ import {RiscZeroCheats} from "risc0/test/RiscZeroCheats.sol";
 import {console2} from "forge-std/console2.sol";
 import {Test} from "forge-std/Test.sol";
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
-import {EvenNumber} from "../contracts/EvenNumber.sol";
+import {ZkAlcoholAttest} from "../contracts/ZkAlcoholAttest.sol";
 import {Elf} from "./Elf.sol"; // auto-generated contract after running `cargo build`.
 
-contract EvenNumberTest is RiscZeroCheats, Test {
-    EvenNumber public evenNumber;
+contract ZkAlcoholAttestTest is RiscZeroCheats, Test {
+    ZkAlcoholAttest public zkAlcoholAttest;
 
     function setUp() public {
         IRiscZeroVerifier verifier = deployRiscZeroVerifier();
-        evenNumber = new EvenNumber(verifier);
-        assertEq(evenNumber.get(), 0);
+        zkAlcoholAttest = new ZkAlcoholAttest(verifier);
     }
 
-    function test_SetEven() public {
-        uint256 number = 12345678;
-        (bytes memory journal, bytes memory seal) = prove(Elf.IS_EVEN_PATH, abi.encode(number));
+    function test_Mint() public {
+        uint256 value = 12;
+        address to = 0x0901549Bc297BCFf4221d0ECfc0f718932205e33;
+        (bytes memory journal, bytes memory seal) = prove(
+            Elf.ZK_ATTEST_GUEST_PATH,
+            abi.encode(to, value)
+        );
 
-        evenNumber.set(abi.decode(journal, (uint256)), seal);
-        assertEq(evenNumber.get(), number);
-    }
+        // decode address to and uint256 value from journal
+        (address decodedTo, uint256 decodedValue) = abi.decode(
+            journal,
+            (address, uint256)
+        );
 
-    function test_SetZero() public {
-        uint256 number = 0;
-        (bytes memory journal, bytes memory seal) = prove(Elf.IS_EVEN_PATH, abi.encode(number));
-
-        evenNumber.set(abi.decode(journal, (uint256)), seal);
-        assertEq(evenNumber.get(), number);
+        zkAlcoholAttest.mint(decodedTo, decodedValue, seal);
+        assertEq(zkAlcoholAttest.balanceOf(to), 1);
+        assertEq(zkAlcoholAttest.alcoholLevels(0), value);
     }
 }
