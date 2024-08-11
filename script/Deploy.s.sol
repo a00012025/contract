@@ -69,16 +69,19 @@ contract EvenNumberDeploy is Script {
 
         if (bytes(configProfile).length != 0) {
             console2.log("Deploying using config profile:", configProfile);
-            string memory configProfileKey = string.concat(
-                ".profile.",
-                configProfile
+            // string memory configProfileKey = string.concat(
+            //     ".profile.",
+            //     configProfile
+            // );
+            // address riscZeroVerifierAddress = stdToml.readAddress(
+            //     config,
+            //     string.concat(configProfileKey, ".riscZeroVerifierAddress")
+            // );
+            // // If set, use the predeployed verifier address found in the config.
+            // verifier = IRiscZeroVerifier(riscZeroVerifierAddress);
+            verifier = IRiscZeroVerifier(
+                0x925d8331ddc0a1F0d96E68CF073DFE1d92b69187
             );
-            address riscZeroVerifierAddress = stdToml.readAddress(
-                config,
-                string.concat(configProfileKey, ".riscZeroVerifierAddress")
-            );
-            // If set, use the predeployed verifier address found in the config.
-            verifier = IRiscZeroVerifier(riscZeroVerifierAddress);
         }
 
         // Determine the wallet to send transactions from.
